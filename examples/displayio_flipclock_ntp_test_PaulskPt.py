@@ -62,6 +62,14 @@ def setup():
         raise
 
     location = secrets.get("timezone", None)
+    if location is None:
+        tz_offset = 0
+    else:
+        tz_offset0 = secrets.get("tz_offset", None)
+        if tz_offset0 is None:
+            tz_offset = 0
+        else:
+            tz_offset = int(tz_offset0)
 
     print("\nConnecting to AP...")
     while not esp.is_connected:
@@ -78,15 +86,8 @@ def setup():
         if esp.is_connected:
             # Initialize the NTP object
             ntp = NTP(esp)
-            location = secrets.get("timezone", location)
-            if my_debug:
-                print("location (from secrets.h) = ", location)
-            if location == "Europe/Lisbon":
-                if my_debug:
-                    print("Using timezone Europe/Lisbon")
-                tz_offset = 3600
-            else:
-                tz_offset = -(5 * 3600) # CDT
+            #location = secrets.get("timezone", location)
+            print("Using timezone: \'{}\'\ntimezone offset: {}".format(location, tz_offset))
         refresh_from_NTP()
 
 def make_clock():
@@ -150,7 +151,6 @@ def refresh_from_NTP():
         if esp.is_connected:
             ntp_current_time = None
             timeout_cnt = 0
-            print("tz_offset=", tz_offset)
             while not ntp.valid_time:
                 try:
                     ntp.set_time(tz_offset)
