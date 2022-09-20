@@ -63,6 +63,7 @@ def setup():
 
     location = secrets.get("timezone", None)
     if location is None:
+        location = 'Not set'
         tz_offset = 0
     else:
         tz_offset0 = secrets.get("tz_offset", None)
