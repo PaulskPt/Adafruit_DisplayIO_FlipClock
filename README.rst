@@ -201,8 +201,7 @@ For the same reason a global flag 'use_dynamic_fading' was introduced in the fil
 'displayio_flipclock_ntp_test_PaulskPt.py'.
 
 In an attempt to use less memory in the PyPortal Titano,
-copies of some .bmp files were made with shortened filenames:
-```
+copies of some .bmp files were made with shortened filenames:```
 +------------------------------------------+---------------------------+
 | Orignal finame:                          | Copy (shortened filename) |
 +------------------------------------------+---------------------------+
