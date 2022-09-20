@@ -213,6 +213,7 @@ copies of some .bmp files were made with shortened filenames:```
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 ```
+
 Example #2 sets the internal Realtime Clock of the microcontroller with the date and time received 
 from the function set_time() of class NTP, in file: 'adafruit_ntp.py. 
 The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
