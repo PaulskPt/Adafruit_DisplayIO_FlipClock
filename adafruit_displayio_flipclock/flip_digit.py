@@ -24,6 +24,7 @@ Implementation Notes
   https://circuitpython.org/downloads
 """
 
+import gc
 try:
     from typing import Optional  # pylint: disable=unused-import
     from displayio import Bitmap
@@ -32,7 +33,6 @@ except ImportError:
 import time
 from adafruit_displayio_layout.widgets.widget import Widget
 from displayio import TileGrid, Palette  # pylint: disable=ungrouped-imports
-
 
 class FlipDigit(Widget):
     """
@@ -115,6 +115,8 @@ class FlipDigit(Widget):
         brighter_level: float = 0.85,
         darker_level: float = 0.6,
         medium_level: float = 0.8,
+        h_pos: int = 0,
+        v_pos: int = 0,
     ) -> None:
 
         # initialize parent Widget object
@@ -130,17 +132,26 @@ class FlipDigit(Widget):
             from cedargrove_palettefader import (
                 PaletteFader,
             )
+            gc.collect()
 
             self.static_fader = PaletteFader(
                 static_spritesheet_palette, medium_level, 1.0
             )
+            gc.collect()
+            
             self.darker_static_fader = PaletteFader(
                 static_spritesheet_palette, darker_level, 1.0
             )
+            gc.collect()
+            
             self.bottom_anim_fader = PaletteFader(
                 bottom_anim_palette, brighter_level, 1.0
             )
+            gc.collect()
+            
             self.top_anim_fader = PaletteFader(top_anim_palette, darker_level, 1.0)
+            gc.collect()
+            
             static_palette = self.static_fader.palette
             bottom_palette = self.bottom_anim_fader.palette
             top_palette = self.top_anim_fader.palette
@@ -152,6 +163,9 @@ class FlipDigit(Widget):
         # store animation variables on self for access in other functions
         self.anim_delay = anim_delay
         self.anim_frame_count = anim_frame_count
+        self.max_val = (self.anim_frame_count//2) * 10
+        self.h_pos = h_pos
+        self.v_pos = v_pos
 
         # top static tilegrid init
         self.top_static_tilegrid = TileGrid(
@@ -161,6 +175,8 @@ class FlipDigit(Widget):
             width=1,
             tile_width=tile_width,
             tile_height=tile_height,
+            #x = self.h_pos,
+            y = self.v_pos,
         )
 
         # bottom static tilegrid init
@@ -172,6 +188,8 @@ class FlipDigit(Widget):
             width=1,
             tile_width=tile_width,
             tile_height=tile_height,
+            #x = self.h_pos,
+            y = self.v_pos + tile_height,
         )
 
         # top animation tilegrid init
@@ -182,6 +200,9 @@ class FlipDigit(Widget):
             width=1,
             tile_width=tile_width,
             tile_height=tile_height,
+            #x = self.h_pos,
+            y = self.v_pos,
+
         )
 
         # bottom animation tilegrid init
@@ -192,6 +213,8 @@ class FlipDigit(Widget):
             width=1,
             tile_width=tile_width,
             tile_height=tile_height,
+            #x = self.h_pos,
+            y = self.v_pos + tile_height,
         )
 
         # add static tilegrids to parent Group
@@ -199,7 +222,7 @@ class FlipDigit(Widget):
         self.append(self.bottom_static_tilegrid)
 
         # set y position of bottom static tilegrid
-        self.bottom_static_tilegrid.y = tile_height
+        #self.bottom_static_tilegrid.y = self.v_pos + tile_height
 
         # hide the animation tilegrids
         self.top_anim_tilegrid.hidden = True
@@ -210,7 +233,7 @@ class FlipDigit(Widget):
         self.append(self.bottom_anim_tilegrid)
 
         # set y position of bottom animation tilegrid
-        self.bottom_anim_tilegrid.y = tile_height
+        #self.bottom_anim_tilegrid.y = self.v_pos + tile_height
 
         # variable to hold current value
         self._value = 0
@@ -226,7 +249,7 @@ class FlipDigit(Widget):
         The current value of the digit as an integer.
         """
         return self._value
-
+    
     @value.setter
     def value(self, new_value: int) -> None:
         """
@@ -252,7 +275,9 @@ class FlipDigit(Widget):
 
                 # set the first frame of the animation spritesheet into
                 # top animation tilegrid
-                self.top_anim_tilegrid[0] = _old_value * self.anim_frame_count
+                #self.top_anim_tilegrid[0] = self.bounds_check(_old_value * self.anim_frame_count)
+                n = _old_value * self.anim_frame_count
+                self.top_anim_tilegrid[0] = n if n < self.max_val else self.max_val -1
 
                 # show the top animation tilegrid
                 self.top_anim_tilegrid.hidden = False
@@ -277,7 +302,9 @@ class FlipDigit(Widget):
                 self.top_anim_tilegrid.hidden = True
 
                 # set the bottom animation tilegrid to it's new value
-                self.bottom_anim_tilegrid[0] = new_value * self.anim_frame_count
+                #self.top_anim_tilegrid[0] = self.bounds_check(new_value * self.anim_frame_count)
+                n = new_value * self.anim_frame_count
+                self.top_anim_tilegrid[0] = n if n < self.max_val else self.max_val -1
 
                 # show the bottom animation tilegrid
                 self.bottom_anim_tilegrid.hidden = False
@@ -312,8 +339,9 @@ class FlipDigit(Widget):
         # loop over frame count
         for i in range(self.anim_frame_count):
             # set the top animation sprite to current animation frame sprite index
-            self.top_anim_tilegrid[0] = i + (value * self.anim_frame_count)
-
+            #self.top_anim_tilegrid[0] = self.bounds_check(i + (value * self.anim_frame_count))
+            n = i + (value * self.anim_frame_count)
+            self.top_anim_tilegrid[0] = n if n < self.max_val else self.max_val -1
             # sleep for delay
             time.sleep(self.anim_delay)
 
@@ -325,7 +353,8 @@ class FlipDigit(Widget):
         # loop over frame count
         for i in range(self.anim_frame_count):
             # set the bottom animation sprite to current animation frame sprite index
-            self.bottom_anim_tilegrid[0] = i + (value * self.anim_frame_count)
-
+            #self.bottom_anim_tilegrid[0] = self.bounds_check(i + (value * self.anim_frame_count))
+            n = i + (value * self.anim_frame_count)
+            self.bottom_anim_tilegrid[0] = n if n < self.max_val else self.max_val -1
             # sleep for delay
             time.sleep(self.anim_delay)

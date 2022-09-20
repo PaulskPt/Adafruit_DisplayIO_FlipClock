@@ -90,6 +90,8 @@ class FlipClock(Widget):
         brighter_level: float = 0.85,
         darker_level: float = 0.6,
         medium_level: float = 0.8,
+        h_pos: int = 0,
+        v_pos: int = 0,
     ) -> None:
 
         # initialize parent Widget object
@@ -112,6 +114,8 @@ class FlipClock(Widget):
         self.brighter_level = brighter_level
         self.darker_level = darker_level
         self.medium_level = medium_level
+        self.h_pos = h_pos
+        self.v_pos = v_pos
 
         # Create first digit of first pair
         self.digit_0 = FlipDigit(
@@ -128,8 +132,10 @@ class FlipClock(Widget):
             brighter_level=self.brighter_level,
             darker_level=self.darker_level,
             medium_level=self.medium_level,
+            h_pos = self.h_pos,
+            v_pos = self.v_pos
         )
-        self.digit_0.x = 0
+        self.digit_0.x = self.h_pos
         # append it to parent Group
         self.append(self.digit_0)
 
@@ -148,8 +154,10 @@ class FlipClock(Widget):
             brighter_level=self.brighter_level,
             darker_level=self.darker_level,
             medium_level=self.medium_level,
+            h_pos = self.h_pos,
+            v_pos = self.v_pos,
         )
-        self.digit_1.x = self.tile_width
+        self.digit_1.x = self.h_pos + self.tile_width
         # append it to parent Group
         self.append(self.digit_1)
 
@@ -168,9 +176,11 @@ class FlipClock(Widget):
             brighter_level=self.brighter_level,
             darker_level=self.darker_level,
             medium_level=self.medium_level,
+            h_pos = self.h_pos,
+            v_pos = self.v_pos,
         )
 
-        self.digit_2.x = (self.tile_width) * 2 + COLON_SPACE
+        self.digit_2.x = self.h_pos + (self.tile_width) * 2 + COLON_SPACE
         # append it to parent Group
         self.append(self.digit_2)
 
@@ -189,6 +199,8 @@ class FlipClock(Widget):
             brighter_level=self.brighter_level,
             darker_level=self.darker_level,
             medium_level=self.medium_level,
+            h_pos = self.h_pos,
+            v_pos = self.v_pos,
         )
 
         self.digit_3.x = self.digit_2.x + self.tile_width
@@ -201,8 +213,12 @@ class FlipClock(Widget):
 
         # calculate colon position
         colon_x = self.digit_1.x + self.tile_width + 6
+        """
         top_dot_y = self.tile_height * 2 // 3
         bottom_dot_y = (self.tile_height * 2 // 3) * 2
+        """
+        top_dot_y = self.v_pos + self.tile_height * 2 // 3
+        bottom_dot_y = self.v_pos + (self.tile_height * 2 // 3) * 2
 
         # create circles for colon
         top_circle = Circle(
