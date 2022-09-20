@@ -87,7 +87,6 @@ def setup():
         if esp.is_connected:
             # Initialize the NTP object
             ntp = NTP(esp)
-            #location = secrets.get("timezone", location)
             print("Using timezone: \'{}\'\ntimezone offset: {}".format(location, tz_offset))
         refresh_from_NTP()
 
