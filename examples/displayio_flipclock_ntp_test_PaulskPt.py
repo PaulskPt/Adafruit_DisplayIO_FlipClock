@@ -20,10 +20,13 @@ import adafruit_imageload
 from adafruit_ntp import NTP
 from adafruit_displayio_flipclock.flip_clock import FlipClock
 
+""" Global flags """
 my_debug = False
 use_ntp = True
 use_flipclock = True
 use_dynamic_fading = True
+
+""" Other global variables """
 esp = None
 default_dt = None
 main_group = None

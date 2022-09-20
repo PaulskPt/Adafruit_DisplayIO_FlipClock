@@ -96,7 +96,7 @@ Or the following command to update an existing version:
 
     circup update
 
-Usage Example
+Usage Example #1
 =============
 
 .. code-block:: python
@@ -163,6 +163,55 @@ Usage Example
             flip_digit.value = i
             time.sleep(0.75)
 
+
+Usage Example #2
+================
+This example connects to WiFi to sync the internal RTC with the datetime stamp of a NTP server.
+The following variables have to be set in the file secrets.py:
+- WiFi ssid;
+- WiFi password;
+- timezone;
+- NTP server pool.
+
+Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
+
+import time
+import gc
+import sys
+import board
+#import busio
+from digitalio import DigitalInOut
+from adafruit_esp32spi import adafruit_esp32spi
+from displayio import Group
+import adafruit_imageload
+from adafruit_ntp import NTP
+from adafruit_displayio_flipclock.flip_clock import FlipClock
+
+""" Global flags """
+my_debug = False
+use_ntp = True
+use_flipclock = True
+use_dynamic_fading = True
+
+[...]
+
+Note PaulskPt about modifications in file flip_digit.py, class FlipDigit, which were necessary 
+to stop having MemoryErrors. Added 'import gc'. In function __init__() added in five places 'gc.collect()'.
+These additions had the intended result. The MemoryErrors stopped to occur.
+For the same reason a global flag 'use_dynamic_fading' was introduced in the file
+'displayio_flipclock_ntp_test_PaulskPt.py'.
+
+In an attempt to use less memory in the PyPortal Titano,
+copies of some .bmp files were made with shortened filenames:
++------------------------------------------+---------------------------+
+| Orignal finame:                          | Copy (shortened filename) |
++------------------------------------------+---------------------------+
+| static_sheet_small.bmp                   | static_s.bmp              |
++------------------------------------------+---------------------------+
+| top_anmation_sheet_small_5frames.bmp     | top_anim_s_5f.bmp         |
++------------------------------------------+---------------------------+
+| bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
++------------------------------------------+---------------------------+
 
 Documentation
 =============
