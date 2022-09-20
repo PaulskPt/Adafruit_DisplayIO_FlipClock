@@ -170,8 +170,7 @@ This example connects to WiFi to sync the internal RTC with the datetime stamp o
 The following variables have to be set in the file secrets.py:
 - WiFi ssid;
 - WiFi password;
-- timezone;
-- NTP server pool.
+- timezone.
 
 Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
 
@@ -212,6 +211,13 @@ copies of some .bmp files were made with shortened filenames:
 +------------------------------------------+---------------------------+
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
+
+Example #2 sets the internal Realtime Clock of the microcontroller with the date and time received 
+from the function set_time() of class NTP, in file: 'adafruit_ntp.py. 
+The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
+in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' (or .mpy).
+Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
+The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
 Documentation
 =============
