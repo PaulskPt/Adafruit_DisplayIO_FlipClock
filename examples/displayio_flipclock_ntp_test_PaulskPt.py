@@ -23,6 +23,7 @@ from adafruit_displayio_flipclock.flip_clock import FlipClock
 """ Global flags """
 my_debug = False
 use_ntp = True
+use_local_time = None
 use_flipclock = True
 use_dynamic_fading = True
 
@@ -39,7 +40,7 @@ hour_old = 0
 min_old = 0
 
 def setup():
-    global esp, ntp, tz_offset
+    global esp, ntp, tz_offset, use_local_time
 
     esp32_cs = DigitalInOut(board.ESP_CS)
     esp32_ready = DigitalInOut(board.ESP_BUSY)
@@ -61,16 +62,30 @@ def setup():
         print("WiFi secrets are kept in secrets.py, please add them there!")
         raise
 
-    location = secrets.get("timezone", None)
-    if location is None:
-        location = 'Not set'
-        tz_offset = 0
+    lt = secrets.get("LOCAL_TIME_FLAG", None)
+    if lt is None:
+        use_local_time = False
     else:
-        tz_offset0 = secrets.get("tz_offset", None)
-        if tz_offset0 is None:
+        lt2 = int(lt)
+        print("lt2=", lt2)
+        use_local_time = True if lt2 == 1 else False
+    if use_local_time == False:
+        tz_offset = 0  # Reset timezone offset if using UTC (GMT) time
+
+    if use_local_time:
+        location = secrets.get("timezone", None)
+        if location is None:
+            location = 'Not set'
             tz_offset = 0
         else:
-            tz_offset = int(tz_offset0)
+            tz_offset0 = secrets.get("tz_offset", None)
+            if tz_offset0 is None:
+                tz_offset = 0
+            else:
+                tz_offset = int(tz_offset0)
+    else:
+        location = 'UTC'
+        tz_offset = 0
 
     print("\nConnecting to AP...")
     while not esp.is_connected:
@@ -88,6 +103,7 @@ def setup():
             # Initialize the NTP object
             ntp = NTP(esp)
             print("Using timezone: \'{}\'\ntimezone offset: {}".format(location, tz_offset))
+
         refresh_from_NTP()
 
 def make_clock():
@@ -219,10 +235,10 @@ def main():
     global start_t
     gc.collect()
     setup()
-    if my_debug:
-        print("main(): use_flipclock      =", "True" if use_flipclock else "False")
-        print("        use_dynamic_fading =", "True" if use_dynamic_fading else "False")
-        print("        use_ntp            =", "True" if use_ntp else "False")
+    print("main(): use_flipclock      =", "True" if use_flipclock else "False")
+    print("        use_dynamic_fading =", "True" if use_dynamic_fading else "False")
+    print("        use_ntp            =", "True" if use_ntp else "False")
+    print("        use_local_time     =", "True" if use_local_time else "False")
     while True:
         try:
             curr_t = time.monotonic()

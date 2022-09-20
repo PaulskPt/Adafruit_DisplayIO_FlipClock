@@ -7,6 +7,7 @@
 secrets = {
     'ssid' : '<WiFi ssid>',
     'password' : '<WiFi password>',
+    'LOCAL_TIME_FLAG' : "1",
     'timezone' : 'Europe/Lisbon', # http://worldtimeapi.org/timezones
     'tz_offset' : '3600',
     # 'timezone' : 'America/New York',

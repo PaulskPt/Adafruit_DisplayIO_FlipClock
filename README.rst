@@ -217,10 +217,10 @@ copies of some .bmp files were made with shortened filenames:
 +------------------------------------------+---------------------------+
 
 Example #2 sets the internal Realtime Clock of the microcontroller with the date and time received 
-from the function 'set_time()'' of class NTP, in file: 'adafruit_ntp.py. 
+from the function 'set_time()' of class NTP, in file: 'adafruit_ntp.py'. 
 The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
 in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' (or .mpy).
-The adafruit_ntp.NTP() function gets the datetime from the Adafruit NTP pool server, which has the following
+The 'adafruit_ntp.NTP()' function gets the datetime from the Adafruit NTP pool server, which has the following
 server string: '0.adafruit.pool.ntp.org'. The adafruit module does not handle daylight savings or local time.
 It simply requests UTC from a NTP server. However the function 'refresh_from_NTP()' in this example,
 takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
@@ -228,7 +228,7 @@ value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value fo
 string value representing the timezone offset from UTC. 
 Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours = - 4 * 3600 = -14400. 
 The value of the key 'tz_offset' in this case shoud be: '-14400'.
-
+If one wants the clock displays UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
 
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
