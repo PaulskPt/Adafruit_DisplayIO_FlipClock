@@ -69,8 +69,6 @@ def setup():
         lt2 = int(lt)
         print("lt2=", lt2)
         use_local_time = True if lt2 == 1 else False
-    if use_local_time == False:
-        tz_offset = 0  # Reset timezone offset if using UTC (GMT) time
 
     if use_local_time:
         location = secrets.get("timezone", None)
