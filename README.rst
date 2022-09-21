@@ -218,7 +218,7 @@ copies of some .bmp files were made with shortened filenames:
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 
-Example #2 
+Example #3
 ==========
 Filename: displayio_flipclock_ntp_test_PaulskPt.py.
 
@@ -235,7 +235,7 @@ If the user wants the flipclock display to display UTC time, then set the value 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
-Example #3
+Example #4
 ==========
 Filename: displayio_flipclock_ntp_test2_PaulskPt.py.
 
