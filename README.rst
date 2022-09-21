@@ -196,27 +196,6 @@ Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
     
     [...]
 
-Notes
-=====
-PaulskPt about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
-to stop having MemoryErrors. Added 'import gc'. In function '__init__()' added in five places 'gc.collect()'.
-These additions had the intended result. The MemoryErrors stopped to occur.
-For the same reason a global flag 'use_dynamic_fading' was introduced in the file
-'displayio_flipclock_ntp_test_PaulskPt.py'.
-
-In an attempt to use less memory in the PyPortal Titano,
-copies of some .bmp files were made with shortened filenames:
-
-.. 
-+------------------------------------------+---------------------------+
-| Orignal finame:                          | Copy (shortened filename) |
-+------------------------------------------+---------------------------+
-| static_sheet_small.bmp                   | static_s.bmp              |
-+------------------------------------------+---------------------------+
-| top_anmation_sheet_small_5frames.bmp     | top_anim_s_5f.bmp         |
-+------------------------------------------+---------------------------+
-| bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
-+------------------------------------------+---------------------------+
 
 Example #3
 ==========
@@ -224,7 +203,7 @@ Filename: displayio_flipclock_ntp_test_PaulskPt.py.
 
 This example sets the internal Realtime Clock of the microcontroller with the date and time received 
 from the function 'get_time' of class 'ESP_SPIcontrol' in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' 
-(or .mpy). To control the built-in RTC the CircuitPython core module 'rtc' with class 'RTC' is used.
+(or .mpy). To control the built-in RTC the CircuitPython the class 'RTC' is used. This class is in the 'rtc' core module.
 The function 'refresh_from_NTP()' in this example, takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
 value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value for key 'tz_offset' needs to be a
 string value representing the timezone offset from UTC. 
@@ -242,15 +221,40 @@ Filename: displayio_flipclock_ntp_test2_PaulskPt.py.
 This example uses the Adafruit IO TIME Service. To be able to use this example, the user has to set 
 the keys 'aio_username' and 'aio_key' in the file 'secrets.py'. I used the Adafruit TIME Service successfully
 in another project using an Adafruit MAGTAG device.
-In function 'refresh_from_NTP' a UTC datetime stamp will be requested from the Adafruit IO TIME Service.
-An example respons from the Adafruit IO TIME Service is a text string, e.g.:
-'2022-09-20 22:38:00.324 263 2 +0000 UTC'. This string will be converted to a time.struct_time tuple,
-that is used to set the built-in RTC, using the command: 'rtc.datetime = (time.struct_time)'. 
+In function 'refresh_from_NTP()' a datetime stamp will be requested from the Adafruit IO TIME Service.
+Two example responses from the Adafruit IO TIME Service are the text string:
+1) '2022-09-20 22:38:00.324 263 2 +0000 UTC';
+2) '2022-09-21 12:38:05.725 264 3 +0100 WEST'.
+These strings each will be converted to a time.struct_time tuple,
+used to set the built-in RTC, using the command: 'rtc.datetime = (<time.struct_time>)'. 
 Next the global variable 'default_dt' will be set, corrected for local timezone offset from UTC,
 depending the value of the global variable tz_offset.
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
+
+Notes
+=====
+PaulskPt's notes about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
+to stop having MemoryErrors when running the examples #3 and #4 above on an Adafruit PyPortal Titano.
+Added 'import gc'. In function '__init__()' added in five places 'gc.collect()'.
+These additions had the intended result. The MemoryErrors stopped to occur.
+For the same reason a global flag 'use_dynamic_fading' was introduced in the file
+'displayio_flipclock_ntp_test_PaulskPt.py'.
+
+In an attempt to use less memory in the PyPortal Titano,
+copies of some .bmp files were made with shortened filenames:
+
+.. 
++------------------------------------------+---------------------------+
+| Orignal finame:                          | Copy (shortened filename) |
++------------------------------------------+---------------------------+
+| static_sheet_small.bmp                   | static_s.bmp              |
++------------------------------------------+---------------------------+
+| top_anmation_sheet_small_5frames.bmp     | top_anim_s_5f.bmp         |
++------------------------------------------+---------------------------+
+| bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
++------------------------------------------+---------------------------+
 
 Documentation
 =============
