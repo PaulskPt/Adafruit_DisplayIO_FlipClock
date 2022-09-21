@@ -235,7 +235,7 @@ Every ten minutes the internal RTC will be synchronized through a call to functi
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
 Example # 3 was created because of a discussion at: https://github.com/adafruit/Adafruit_CircuitPython_NTP/issues/16,
-from which I learned that the esp32spi.settime() creates a datetime stamp that is not alway accurate.
+from which I learned that the esp32spi.get_time() creates a datetime stamp that is not always accurate.
 
 Example #3 (filename: displayio_flipclock_ntp_test2_PaulskPt.py).
 This example uses the Adafruit IO TIME Service. To be able to use this example, the user has to set 
