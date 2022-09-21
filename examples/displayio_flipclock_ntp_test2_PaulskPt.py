@@ -125,11 +125,13 @@ def make_clock():
         # load the anim sprite sheets
         top_anim_ss, top_anim_palette = adafruit_imageload.load(
             "top_anim_s_5f.bmp"
+            #"top_animation_sheet_5frames.bmp" # error memory allocation failed, allocating 120000 bytes
         )
         gc.collect()
         # print(gc.mem_free())
         btm_anim_ss, btm_anim_palette = adafruit_imageload.load(
             "btm_anim_s_5f.bmp"
+            #"bottom_animation_sheet_5frames.bmp"
         )
         # set the transparent color indexes in respective palettes
         for _ in TRANSPARENT_INDEXES:
@@ -149,7 +151,7 @@ def make_clock():
                     (static_ss.height // 4) // 2,
                     anim_frame_count=5,
                     anim_delay=0.02,
-                    colon_color=0xFFFFFF,
+                    colon_color=0x00FF00,
                     dynamic_fading=use_dynamic_fading,
                     brighter_level=0.99,
                     darker_level=0.5,
@@ -172,11 +174,11 @@ def dt_adjust():
         print("             location=", location)
 
     default_dt = time.localtime(time.time())
-    
+
 def refresh_from_NTP():
     global default_dt, tm_offset
     TAG = "refresh_from_NTP(): "
-    # Note: created a 'split' into a 
+    # Note: created a 'split' into:
     # a) TIME_URL string to send the request,
     #    containing the real aio_username and the real aio_key;
     # b) a string to be printed to REPL, containing '<aio_username>' and '<aio_key>' placeholders,
@@ -187,11 +189,11 @@ def refresh_from_NTP():
     #   strftime specifiers used (see: https://cplusplus.com/reference/ctime/strftime/):
     #   %25 = '%'
     #   %Y  = Year, %25m = Month, %25d = Day of the month, zero-padded (01-31)
-    #   %H  = Hour in 24h format (00-23), 
+    #   %H  = Hour in 24h format (00-23),
     #   %3A = ':'
     #   %M  = Minute (00-59)
     #   %S  = Second (00-61)
-    #   .%L = ? (maybe a C/C++ type 'Long' indicator. 
+    #   .%L = ? (maybe a C/C++ type 'Long' indicator.
     #         e.g.: if second is 23.047 the strftime spec would probably be: '23.047L')
     #   %j  = Day of the year (001-366)
     #   %u  = ISO 8601 weekday as number with Monday as 1 (1-7)
@@ -210,7 +212,7 @@ def refresh_from_NTP():
     # Cleanup
     t0 = t1 = t2 = t3 = t_pr1 = None
     gc.collect()
-    
+
     requests.set_socket(socket, esp)
 
     if use_ntp:
@@ -247,7 +249,7 @@ def refresh_from_NTP():
                 date_lst ['2022', '09', '20']
                 time_lst ['22', '53', '17.323']
 
-                Results REPL output: 
+                Results REPL output:
                 ----------------------------------------
                 TIME received: 2022-09-20 23:11:48.347 263 2 +0000 UTC
                 Setting the built-in RTC to: struct_time(tm_year=2022, tm_mon=9, tm_mday=20, tm_hour=23, tm_min=11, tm_sec=48, tm_wday=263, tm_yday=2, tm_isdst=-1)
@@ -263,7 +265,7 @@ def refresh_from_NTP():
                     print("date_lst", date_lst)
                     print("time_lst", time_lst)
                 if not my_debug:
-                    print("-" * 40)
+                    print("-" * 55)
                     t = TAG + "\nTIME received: {}".format(response.text)
                     print(t)
                 tm_year = int(date_lst[0])
@@ -288,7 +290,8 @@ def refresh_from_NTP():
 
                 if my_debug:
                     print("Internal clock synchronized from NTP pool, now =", default_dt)
-                    print("-" * 40)
+                if not my_debug:
+                    print("-" * 55)
 
         else:
             print("No internet. Setting default time")
