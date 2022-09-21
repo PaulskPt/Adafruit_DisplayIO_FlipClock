@@ -335,6 +335,8 @@ copies of some .bmp files were made with shortened filenames:
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 
+For examples #2 and #3, if you want to see more (debug) output to REPL, set global variable: 'my\_debug = True'
+
 Documentation
 =============
 API documentation for this library can be found on `Read the Docs <https://docs.circuitpython.org/projects/displayio_flipclock/en/latest/>`_.
