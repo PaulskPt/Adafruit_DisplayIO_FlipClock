@@ -185,12 +185,12 @@ The time will be shown on the display ('hh:mm'). The displayed time will be refr
 Usage Example #2
 ================
 
-The following variables have to be set in the file secrets.py:
+The following variables have to be set in the file secrets.py:```
 - WiFi ssid;
 - WiFi password;
 - timezone;             See: http://worldtimeapi.org/timezones
 - tz_offset;
-- LOCAL_TIME_FLAG.
+- LOCAL_TIME_FLAG.```
 
 Start of the example: 'displayio_flipclock_ntp_test1_PaulskPt.py'
 
@@ -254,12 +254,12 @@ The time will be shown on the display ('hh:mm'). The displayed time will be refr
 Usage example #3
 ================
 
-The following variables have to be set in the file secrets.py:
+The following variables have to be set in the file secrets.py:```
 - WiFi ssid;
 - WiFi password;
 - timezone;             See: http://worldtimeapi.org/timezones
 - tz_offset;
-- LOCAL_TIME_FLAG.
+- LOCAL_TIME_FLAG.```
 
 Start of the example: 'displayio_flipclock_ntp_test2_PaulskPt.py'
 
