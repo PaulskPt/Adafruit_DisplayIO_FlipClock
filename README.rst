@@ -223,18 +223,14 @@ Example #2
 Filename: displayio_flipclock_ntp_test_PaulskPt.py.
 
 This example sets the internal Realtime Clock of the microcontroller with the date and time received 
-from the function 'set_time()' of class NTP, in file: 'adafruit_ntp.py'. 
-The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
-in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' (or .mpy).
-The 'adafruit_ntp.NTP()' function gets the datetime from the Adafruit NTP pool server, which has the following
-server string: '0.adafruit.pool.ntp.org'. The adafruit module does not handle daylight savings or local time.
-It simply requests UTC from a NTP server. However the function 'refresh_from_NTP()' in this example,
-takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
+from the function 'get_time' of class 'ESP_SPIcontrol' in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' 
+(or .mpy). To control the built-in RTC the CircuitPython core module 'rtc' with class 'RTC' is used.
+The function 'refresh_from_NTP()' in this example, takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
 value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value for key 'tz_offset' needs to be a
 string value representing the timezone offset from UTC. 
 Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours = - 4 * 3600 = -14400. 
 The value of the key 'tz_offset' in this case shoud be: '-14400'.
-If one wants the clock displays UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
+If the user wants the flipclock display to display UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
@@ -242,9 +238,6 @@ The time will be shown on the display ('hh:mm'). The displayed time will be refr
 Example #3
 ==========
 Filename: displayio_flipclock_ntp_test2_PaulskPt.py.
-
-Example #3 was created because of a discussion at: https://github.com/adafruit/Adafruit_CircuitPython_NTP/issues/16,
-from which I learned that the esp32spi.get_time() creates a datetime stamp that is not always accurate.
 
 This example uses the Adafruit IO TIME Service. To be able to use this example, the user has to set 
 the keys 'aio_username' and 'aio_key' in the file 'secrets.py'. I used the Adafruit TIME Service successfully

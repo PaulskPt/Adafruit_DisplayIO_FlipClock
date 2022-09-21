@@ -12,12 +12,13 @@ import time
 import gc
 import sys
 import board
+from rtc import RTC
 #import busio
 from digitalio import DigitalInOut
 from adafruit_esp32spi import adafruit_esp32spi
 from displayio import Group
 import adafruit_imageload
-from adafruit_ntp import NTP
+#from adafruit_ntp import NTP
 from adafruit_displayio_flipclock.flip_clock import FlipClock
 
 """ Global flags """
@@ -29,6 +30,7 @@ use_dynamic_fading = True
 
 """ Other global variables """
 esp = None
+rtc = None
 default_dt = None
 main_group = None
 clock = None
@@ -40,7 +42,9 @@ hour_old = 0
 min_old = 0
 
 def setup():
-    global esp, ntp, tz_offset, use_local_time
+    global rtc, esp, tz_offset, use_local_time
+    
+    rtc = RTC()
 
     esp32_cs = DigitalInOut(board.ESP_CS)
     esp32_ready = DigitalInOut(board.ESP_BUSY)
@@ -99,7 +103,7 @@ def setup():
     if use_ntp:
         if esp.is_connected:
             # Initialize the NTP object
-            ntp = NTP(esp)
+            #ntp = NTP(esp)
             print("Using timezone: \'{}\'\ntimezone offset: {}".format(location, tz_offset))
 
         refresh_from_NTP()
@@ -158,31 +162,27 @@ def make_clock():
             raise
 
 def refresh_from_NTP():
-    global default_dt, ntp
+    global default_dt
     default_dt = time.struct_time((2022, 9, 17, 12, 0, 0, 5, 261, -1))
 
     if use_ntp:
         if esp.is_connected:
-            ntp_current_time = None
-            timeout_cnt = 0
-            while not ntp.valid_time:
-                try:
-                    ntp.set_time(tz_offset)
-                except OSError:
-                    pass
-                timeout_cnt += 1
-                time.sleep(5)
-                if timeout_cnt > 10:
-                    print("Timeout while trying to get ntp datetime to set the internal rtc")
-                    break
-            if ntp.valid_time:
-                # Get the current time in seconds since Jan 1, 1970 and correct it for local timezone
-                # (defined in secrets.h)
-                ntp_current_time = time.time()
-                # Convert the current time in seconds since Jan 1, 1970 to a struct_time
-                default_dt = time.localtime(ntp_current_time)
-                if not my_debug:
-                    print("Internal clock synchronized from NTP pool, now =", default_dt)
+            try:
+                dt = esp.get_time()[0]
+                lt = time.localtime(dt)
+                rtc.datetime = time.struct_time(lt) # set the built-in rtc
+                if my_debug:
+                    print("refresh_from_NTP(): esp.get_time()={}, type(dt)={}".format(dt, type(dt)))
+                    print("idem                lt=", lt)
+            except OSError:
+                pass
+            # Get the current time in seconds since Jan 1, 1970 and correct it for local timezone
+            # Note: the if global flag 'use_local_time' is False then we use UTC time. Then the tz_offset will be 0.
+            # (defined in secrets.h)
+            # Convert the current time in seconds since Jan 1, 1970 to a struct_time
+            default_dt = time.localtime(time.time()+tz_offset)
+            if not my_debug:
+                print("Internal clock synchronized from NTP pool, now =", default_dt)
         else:
             print("No internet. Setting default time")
 
@@ -191,7 +191,7 @@ def upd_tm():
     TAG="upd_tm(): "
     tm_hour = 3
     tm_min = 4
-    default_dt = time.localtime(time.time())
+    default_dt = time.localtime(time.time()+tz_offset)
     p_time = False
     hh = default_dt[tm_hour]
     mm = default_dt[tm_min]
@@ -256,3 +256,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+# Escreve o teu código aqui :-)
