@@ -34,6 +34,7 @@ rtc = None
 esp = None
 aio_username = None
 aio_key = None
+location = None
 default_dt = None
 main_group = None
 clock = None
@@ -45,7 +46,7 @@ hour_old = 0
 min_old = 0
 
 def setup():
-    global rtc, esp, tz_offset, use_local_time, aio_username, aio_key
+    global rtc, esp, tz_offset, use_local_time, aio_username, aio_key, location
 
     rtc = RTC()  # create the built-in rtc object
 
@@ -78,7 +79,8 @@ def setup():
         use_local_time = False
     else:
         lt2 = int(lt)
-        print("lt2=", lt2)
+        if my_debug:
+            print("lt2=", lt2)
         use_local_time = True if lt2 == 1 else False
 
     if use_local_time:
@@ -93,7 +95,7 @@ def setup():
             else:
                 tz_offset = int(tz_offset0)
     else:
-        location = 'UTC'
+        location = 'Etc/GMT'
         tz_offset = 0
 
     print("\nConnecting to AP...")
@@ -162,6 +164,15 @@ def make_clock():
             #print("setup(): Error: ", e)
             raise
 
+def dt_adjust():
+    global default_dt
+    if my_debug:
+        print("dt_adjust(): use_local_time= {}".format("True" if use_local_time else "False"))
+        print("             tz_offset=", tz_offset)
+        print("             location=", location)
+
+    default_dt = time.localtime(time.time())
+    
 def refresh_from_NTP():
     global default_dt, tm_offset
     TAG = "refresh_from_NTP(): "
@@ -172,29 +183,29 @@ def refresh_from_NTP():
     #    with the intention not to print to REPL the AIO credentials.
     t0 = "https://io.adafruit.com/api/v2/"
     t1 = "/integrations/time/strftime?x-aio-key="
-    """
-       strftime specifiers used (see: https://cplusplus.com/reference/ctime/strftime/):
-       %25 = '%'
-       %Y  = Year, %25m = Month, %25d = Day of the month, zero-padded (01-31)
-       %H  = Hour in 24h format (00-23), 
-       %3A = ':'
-       %M  = Minute (00-59)
-       %S  = Second (00-61)
-       .%L = ? (maybe a C/C++ type 'Long' indicator. 
-             e.g.: if second is 23.047 the strftime spec would probably be: '23.047L')
-       %j  = Day of the year (001-366)
-       %u  = ISO 8601 weekday as number with Monday as 1 (1-7)
-       %z  = ISO 8601 offset from UTC in timezone (1 minute = 1, 1 hour = 100)
-             If timezone cannot be determined, no characters
-       %Z  = Timezone name or abbreviation *
-             If timezone cannot be determined, no characters
-    """
+    ######
+    #   strftime specifiers used (see: https://cplusplus.com/reference/ctime/strftime/):
+    #   %25 = '%'
+    #   %Y  = Year, %25m = Month, %25d = Day of the month, zero-padded (01-31)
+    #   %H  = Hour in 24h format (00-23), 
+    #   %3A = ':'
+    #   %M  = Minute (00-59)
+    #   %S  = Second (00-61)
+    #   .%L = ? (maybe a C/C++ type 'Long' indicator. 
+    #         e.g.: if second is 23.047 the strftime spec would probably be: '23.047L')
+    #   %j  = Day of the year (001-366)
+    #   %u  = ISO 8601 weekday as number with Monday as 1 (1-7)
+    #   %z  = ISO 8601 offset from UTC in timezone (1 minute = 1, 1 hour = 100)
+    #         If timezone cannot be determined, no characters
+    #   %Z  = Timezone name or abbreviation *
+    #         If timezone cannot be determined, no characters
+    ######
     t2 = "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
-    t3 = "{}{}{}{}".format(t0, aio_username, t1, aio_key)
+    t3 = "{}{}{}{}&tz={}".format(t0, aio_username, t1, aio_key, location)
     # Create string (see a) above)
     TIME_URL = t3 + t2
     # Create string (see b) above)
-    t_pr1 = "{}{}{}{}".format(t0, "<aio_username>", t1, "<aio_key>")
+    t_pr1 = "{}{}{}{}&tz={}".format(t0, "<aio_username>", t1, "<aio_key>", location)
     t_pr2 = t_pr1 + t2
     # Cleanup
     t0 = t1 = t2 = t3 = t_pr1 = None
@@ -205,8 +216,9 @@ def refresh_from_NTP():
     if use_ntp:
         if esp.is_connected:
             # esp._debug = True
-            t = TAG + "\nFetching time from Adafruit IO {}".format(t_pr2)
-            print(t)
+            if my_debug:
+                t = TAG + "\nFetching time from Adafruit IO {}".format(t_pr2)
+                print(t)
             try:
                 response = requests.get(TIME_URL)
             except RuntimeError as e:
@@ -246,7 +258,7 @@ def refresh_from_NTP():
                 response.close()
                 date_lst = dt_lst[0].split('-')
                 time_lst = dt_lst[1].split(':')
-                if not my_debug:
+                if my_debug:
                     print("dt_lst", dt_lst)
                     print("date_lst", date_lst)
                     print("time_lst", time_lst)
@@ -263,24 +275,18 @@ def refresh_from_NTP():
                 tm_yday = int(dt_lst[2])
                 tm_wday = int(dt_lst[3])
                 tm_offset = int(dt_lst[4])
-                tm_ew = dt_lst[5]
 
                 dt_to_set = time.struct_time((tm_year, tm_month, tm_date, tm_hour, tm_min, tm_sec, tm_yday, tm_wday, -1))
-                if not my_debug:
+                if my_debug:
                     print("Setting the built-in RTC to:", dt_to_set)
                 rtc.datetime = dt_to_set
                 time.sleep(0.5)
                 # Get the current time in seconds since Jan 1, 1970 and correct it for local timezone
                 # (defined in secrets.h)
                 # Convert the current time in seconds since Jan 1, 1970 to a struct_time
-                if my_debug:
-                    print(TAG+"tz_offset=", tz_offset)
-                if use_local_time and tz_offset != 0 and tm_offset != 0:
-                    default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
-                else:
-                    default_dt = time.localtime(time.time()+tz_offset)
+                dt_adjust()
 
-                if not my_debug:
+                if my_debug:
                     print("Internal clock synchronized from NTP pool, now =", default_dt)
                     print("-" * 40)
 
@@ -294,10 +300,7 @@ def upd_tm():
     tm_min = 4
     tm_sec = 5
 
-    if use_local_time and tz_offset != 0 and tm_offset != 0:
-        default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
-    else:
-        default_dt = time.localtime(time.time()+tz_offset)
+    dt_adjust()
 
     if my_debug:
         print(TAG+"default_dt=", default_dt)
@@ -346,6 +349,8 @@ def main():
     print("        use_dynamic_fading =", "True" if use_dynamic_fading else "False")
     print("        use_ntp            =", "True" if use_ntp else "False")
     print("        use_local_time     =", "True" if use_local_time else "False")
+    print("        location           =", location)
+
     while True:
         try:
             curr_t = time.monotonic()
