@@ -196,7 +196,9 @@ Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
     
     [...]
 
-Note PaulskPt about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
+Notes
+=====
+PaulskPt about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
 to stop having MemoryErrors. Added 'import gc'. In function '__init__()' added in five places 'gc.collect()'.
 These additions had the intended result. The MemoryErrors stopped to occur.
 For the same reason a global flag 'use_dynamic_fading' was introduced in the file
@@ -216,7 +218,10 @@ copies of some .bmp files were made with shortened filenames:
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 
-Example #2 (filename: displayio_flipclock_ntp_test_PaulskPt.py)
+Example #2 
+==========
+Filename: displayio_flipclock_ntp_test_PaulskPt.py.
+
 This example sets the internal Realtime Clock of the microcontroller with the date and time received 
 from the function 'set_time()' of class NTP, in file: 'adafruit_ntp.py'. 
 The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
@@ -234,10 +239,13 @@ If one wants the clock displays UTC time, then set the value of 'LOCAL_TIME_FLAG
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
-Example # 3 was created because of a discussion at: https://github.com/adafruit/Adafruit_CircuitPython_NTP/issues/16,
+Example #3
+==========
+Filename: displayio_flipclock_ntp_test2_PaulskPt.py.
+
+Example #3 was created because of a discussion at: https://github.com/adafruit/Adafruit_CircuitPython_NTP/issues/16,
 from which I learned that the esp32spi.get_time() creates a datetime stamp that is not always accurate.
 
-Example #3 (filename: displayio_flipclock_ntp_test2_PaulskPt.py).
 This example uses the Adafruit IO TIME Service. To be able to use this example, the user has to set 
 the keys 'aio_username' and 'aio_key' in the file 'secrets.py'. I used the Adafruit TIME Service successfully
 in another project using an Adafruit MAGTAG device.
