@@ -164,7 +164,27 @@ Usage Example #1
             time.sleep(0.75)
 
 
-Usage Example #2
+
+
+Example #3
+==========
+Filename: displayio_flipclock_ntp_test_PaulskPt.py.
+
+This example sets the internal Realtime Clock of the microcontroller with the date and time received 
+from the function 'get_time' of class 'ESP_SPIcontrol' in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' 
+(or .mpy). To control the built-in RTC the CircuitPython the class 'RTC' is used. This class is in the 'rtc' core module.
+The function 'refresh_from_NTP()' in this example, takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
+value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value for key 'tz_offset' needs to be a
+string value representing the timezone offset from UTC. 
+Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours = - 4 * 3600 = -14400. 
+The value of the key 'tz_offset' in this case shoud be: '-14400'.
+If the user wants the flipclock display to display UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
+
+Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
+The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
+
+
+Usage Example #3
 ================
 This example connects to WiFi to sync the internal RTC with the datetime stamp of a NTP server.
 The following variables have to be set in the file secrets.py:
@@ -196,23 +216,6 @@ Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
     
     [...]
 
-
-Example #3
-==========
-Filename: displayio_flipclock_ntp_test_PaulskPt.py.
-
-This example sets the internal Realtime Clock of the microcontroller with the date and time received 
-from the function 'get_time' of class 'ESP_SPIcontrol' in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' 
-(or .mpy). To control the built-in RTC the CircuitPython the class 'RTC' is used. This class is in the 'rtc' core module.
-The function 'refresh_from_NTP()' in this example, takes care of setting the built-in RTC by using the timezone offset that the script found by reading the 
-value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value for key 'tz_offset' needs to be a
-string value representing the timezone offset from UTC. 
-Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours = - 4 * 3600 = -14400. 
-The value of the key 'tz_offset' in this case shoud be: '-14400'.
-If the user wants the flipclock display to display UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
-
-Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
-The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
 Example #4
 ==========
