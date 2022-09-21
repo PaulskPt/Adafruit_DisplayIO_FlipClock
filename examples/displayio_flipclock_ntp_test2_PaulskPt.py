@@ -13,6 +13,7 @@ import gc
 import sys
 import board
 from rtc import RTC
+#import busio
 from digitalio import DigitalInOut
 from adafruit_esp32spi import adafruit_esp32spi
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
@@ -164,32 +165,85 @@ def make_clock():
 def refresh_from_NTP():
     global default_dt, tm_offset
     TAG = "refresh_from_NTP(): "
-    TIME_URL = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s" % (aio_username, aio_key)
-    TIME_URL += "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
+    # Note: created a 'split' into a 
+    # a) TIME_URL string to send the request,
+    #    containing the real aio_username and the real aio_key;
+    # b) a string to be printed to REPL, containing '<aio_username>' and '<aio_key>' placeholders,
+    #    with the intention not to print to REPL the AIO credentials.
+    t0 = "https://io.adafruit.com/api/v2/"
+    t1 = "/integrations/time/strftime?x-aio-key="
+    """
+       strftime specifiers used (see: https://cplusplus.com/reference/ctime/strftime/):
+       %25 = '%'
+       %Y  = Year, %25m = Month, %25d = Day of the month, zero-padded (01-31)
+       %H  = Hour in 24h format (00-23), 
+       %3A = ':'
+       %M  = Minute (00-59)
+       %S  = Second (00-61)
+       .%L = ? (maybe a C/C++ type 'Long' indicator. 
+             e.g.: if second is 23.047 the strftime spec would probably be: '23.047L')
+       %j  = Day of the year (001-366)
+       %u  = ISO 8601 weekday as number with Monday as 1 (1-7)
+       %z  = ISO 8601 offset from UTC in timezone (1 minute = 1, 1 hour = 100)
+             If timezone cannot be determined, no characters
+       %Z  = Timezone name or abbreviation *
+             If timezone cannot be determined, no characters
+    """
+    t2 = "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
+    t3 = "{}{}{}{}".format(t0, aio_username, t1, aio_key)
+    # Create string (see a) above)
+    TIME_URL = t3 + t2
+    # Create string (see b) above)
+    t_pr1 = "{}{}{}{}".format(t0, "<aio_username>", t1, "<aio_key>")
+    t_pr2 = t_pr1 + t2
+    # Cleanup
+    t0 = t1 = t2 = t3 = t_pr1 = None
+    gc.collect()
+    
     requests.set_socket(socket, esp)
-    default_dt = time.struct_time((2022, 9, 17, 12, 0, 0, 5, 261, -1))
 
     if use_ntp:
         if esp.is_connected:
             # esp._debug = True
-            print("Fetching time from Adafruit IO", TIME_URL)
-            r = requests.get(TIME_URL)
-            if r is not None:
-                """ Example response: TIME received: 2022-09-20 22:38:00.324 263 2 +0000 UTC
+            t = TAG + "\nFetching time from Adafruit IO {}".format(t_pr2)
+            print(t)
+            try:
+                response = requests.get(TIME_URL)
+            except RuntimeError as e:
+                print(TAG+"Sending request failed")
+                if default_dt is None:
+                    # default_dt has not been set before. Set it.
+                    dt_to_set = time.struct_time((2022, 9, 17, 12, 0, 0, 5, 261, -1))
+                    rtc.datetime = dt_to_set
+                    time.sleep(0.5)
+                    default_dt = time.gmt(time.time()+tz_offset)
+                    print(TAG+"Setting the built-in RTC to:", dt_to_set)
+                return
+
+            if response is not None:
+                n = response.text.find("error")
+                if n >= 0:
+                    print(TAG+"\nResponse from AIO TIME Service contains error:")
+                    print(response.text)
+                    print("Exiting function.")
+                    return
+                """ Example responses:
+                1) TIME received: '2022-09-20 22:38:00.324 263 2 +0000 UTC';
+                2)                '2022-09-21 14:11:05.843 264 3 +0100 WEST'
                 Example:
                 dt_lst ['2022-09-20', '22:53:17.323', '263', '2', '+0000', 'UTC']
                 date_lst ['2022', '09', '20']
                 time_lst ['22', '53', '17.323']
 
-                Results REPL output:
+                Results REPL output: 
                 ----------------------------------------
                 TIME received: 2022-09-20 23:11:48.347 263 2 +0000 UTC
                 Setting the built-in RTC to: struct_time(tm_year=2022, tm_mon=9, tm_mday=20, tm_hour=23, tm_min=11, tm_sec=48, tm_wday=263, tm_yday=2, tm_isdst=-1)
                 check: time from buil-in RTC= struct_time(tm_year=2022, tm_mon=9, tm_mday=20, tm_hour=23, tm_min=11, tm_sec=48, tm_wday=1, tm_yday=263, tm_isdst=-1)
                 ----------------------------------------
                 """
-                dt_lst = r.text.split(" ")
-                r.close()
+                dt_lst = response.text.split(" ")
+                response.close()
                 date_lst = dt_lst[0].split('-')
                 time_lst = dt_lst[1].split(':')
                 if not my_debug:
@@ -198,7 +252,8 @@ def refresh_from_NTP():
                     print("time_lst", time_lst)
                 if not my_debug:
                     print("-" * 40)
-                    print("TIME received:", r.text)
+                    t = TAG + "\nTIME received: {}".format(response.text)
+                    print(t)
                 tm_year = int(date_lst[0])
                 tm_month = int(date_lst[1])
                 tm_date = int(date_lst[2])
@@ -209,7 +264,7 @@ def refresh_from_NTP():
                 tm_wday = int(dt_lst[3])
                 tm_offset = int(dt_lst[4])
                 tm_ew = dt_lst[5]
-                                
+
                 dt_to_set = time.struct_time((tm_year, tm_month, tm_date, tm_hour, tm_min, tm_sec, tm_yday, tm_wday, -1))
                 if not my_debug:
                     print("Setting the built-in RTC to:", dt_to_set)
@@ -224,7 +279,7 @@ def refresh_from_NTP():
                     default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
                 else:
                     default_dt = time.localtime(time.time()+tz_offset)
-                    
+
                 if not my_debug:
                     print("Internal clock synchronized from NTP pool, now =", default_dt)
                     print("-" * 40)
@@ -238,13 +293,14 @@ def upd_tm():
     tm_hour = 3
     tm_min = 4
     tm_sec = 5
-    default_dt = time.localtime(time.time()+tz_offset)
+
     if use_local_time and tz_offset != 0 and tm_offset != 0:
         default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
     else:
         default_dt = time.localtime(time.time()+tz_offset)
+
     if my_debug:
-        print("upd_tm(): default_dt=", default_dt)
+        print(TAG+"default_dt=", default_dt)
     p_time = False
     hh = default_dt[tm_hour]
     mm = default_dt[tm_min]
@@ -267,7 +323,7 @@ def upd_tm():
                 fp2 = clock.first_pair
                 time.sleep(wait)
                 if my_debug:
-                    print("upd_tm(): clock.first_pair=", fp2)
+                    print(TAG+"clock.first_pair=", fp2)
                 sp = "{:02d}".format(default_dt[tm_min])
                 if my_debug:
                     print(TAG+"setting clock.second_pair:", sp)
@@ -275,8 +331,8 @@ def upd_tm():
                 sp2  = clock.second_pair
                 time.sleep(wait)
                 if my_debug:
-                    print("upd_tm(): clock.second_pair=", sp2)
-                print("Time = {}:{}".format(fp2, sp2))
+                    print(TAG+"clock.second_pair=", sp2)
+                print(TAG+"Time = {}:{}".format(fp2, sp2))
             except ValueError as e:
                 print(TAG)
                 raise
