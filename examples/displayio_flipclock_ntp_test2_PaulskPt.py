@@ -27,7 +27,7 @@ my_debug = False
 use_ntp = True
 use_local_time = None
 use_flipclock = True
-use_dynamic_fading = True
+use_dynamic_fading = False
 
 """ Other global variables """
 rtc = None
@@ -56,6 +56,7 @@ def setup():
     #spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
     spi = board.SPI()
     esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
+    requests.set_socket(socket, esp)
 
     # Cleanup
     esp32_cs = None
@@ -202,18 +203,17 @@ def refresh_from_NTP():
     #   %Z  = Timezone name or abbreviation *
     #         If timezone cannot be determined, no characters
     ######
-    t2 = "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
-    t3 = "{}{}{}{}&tz={}".format(t0, aio_username, t1, aio_key, location)
+
+    t2 = "{}{}{}{}&tz={}".format(t0, aio_username, t1, aio_key, location)
+    t3 = "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
     # Create string (see a) above)
-    TIME_URL = t3 + t2
+    TIME_URL = t2 + t3
     # Create string (see b) above)
     t_pr1 = "{}{}{}{}&tz={}".format(t0, "<aio_username>", t1, "<aio_key>", location)
-    t_pr2 = t_pr1 + t2
+    t_pr2 = t_pr1 + t3
     # Cleanup
     t0 = t1 = t2 = t3 = t_pr1 = None
     gc.collect()
-
-    requests.set_socket(socket, esp)
 
     if use_ntp:
         if esp.is_connected:
@@ -222,9 +222,11 @@ def refresh_from_NTP():
                 t = TAG + "\nFetching time from Adafruit IO {}".format(t_pr2)
                 print(t)
             try:
+                print("request=", TIME_URL)
                 response = requests.get(TIME_URL)
             except RuntimeError as e:
                 print(TAG+"Sending request failed")
+                print("   ", e)
                 if default_dt is None:
                     # default_dt has not been set before. Set it.
                     dt_to_set = time.struct_time((2022, 9, 17, 12, 0, 0, 5, 261, -1))
@@ -292,7 +294,8 @@ def refresh_from_NTP():
                     print("Internal clock synchronized from NTP pool, now =", default_dt)
                 if not my_debug:
                     print("-" * 55)
-
+            else:
+                print("response is None")
         else:
             print("No internet. Setting default time")
 
@@ -358,10 +361,13 @@ def main():
         try:
             curr_t = time.monotonic()
             elapsed_t = curr_t - start_t
-            if elapsed_t >= 600:  # sync rtc with NTP datetime every 10 minutes
+            if elapsed_t >= 120:  # sync rtc with NTP datetime every 10 minutes
+                print("elapsed_t=", elapsed_t)
                 start_t = curr_t
                 refresh_from_NTP()
+                gc.collect()
             upd_tm()
+            gc.collect()
             time.sleep(0.75)
             pass
         except ValueError as e:
