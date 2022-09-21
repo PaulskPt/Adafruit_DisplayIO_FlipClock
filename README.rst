@@ -250,6 +250,9 @@ The received datetime string will be converted into a 'time.struct_time tuple',
 used to set the built-in RTC, using the command: 'rtc.datetime = (<time.struct_time>)'. 
 Next the global variable 'default_dt' will be set. Its value will be adjusted with the value of the 
 global variable 'tz_offset', which contains the local timezone offset from UTC.
+If the user wants the flipclock display to display GMT time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'.
+In this case the script will set global variable 'location' to 'Etc/GMT' and 'tz_offset' to 0. This will result in
+Adafruit IO TIME Service responses like shown in 1) above.
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
