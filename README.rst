@@ -335,7 +335,7 @@ copies of some .bmp files were made with shortened filenames:
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 
-For examples #2 and #3, if you want to see more (debug) output to REPL, set global variable: 'my\_debug = True'
+For examples #2 and #3, if you want to see more (debug) output to REPL, set global flag: 'my\_debug = True'
 
 Documentation
 =============
