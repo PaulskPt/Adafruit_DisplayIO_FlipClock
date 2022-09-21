@@ -12,7 +12,7 @@ secrets = {
     'LOCAL_TIME_FLAG' : "1",
     'timezone' : 'Europe/Lisbon', # http://worldtimeapi.org/timezones
     'tz_offset' : '3600',
-    # 'timezone' : 'America/New York',
+    # 'timezone' : 'America/New_York',
     # 'tz_offset' : '-14400',
     # 'timezone' : 'America/Kentucky/Louisville',
     # 'tz_offset': '-18000'
