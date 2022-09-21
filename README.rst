@@ -176,7 +176,8 @@ value of key 'tz-offset' in file 'secrets.py'. In file 'secrets.py' the value fo
 string value representing the timezone offset from UTC. 
 Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours = - 4 * 3600 = -14400. 
 The value of the key 'tz_offset' in this case shoud be: '-14400'.
-If the user wants the flipclock display to display UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
+If the user wants the flipclock display to display GMT time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
+In this case the script will set global variable 'location' to 'Etc/GMT' and 'tz_offset' to 0.
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
