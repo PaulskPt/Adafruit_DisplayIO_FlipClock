@@ -265,6 +265,9 @@ The following variables have to be set in the file secrets.py:
 - tz_offset
 - LOCAL_TIME_FLAG
 
+To be able to use this example the user needs an account for Adafruit IO. If you don't have one, you can signup for free:
+https://accounts.adafruit.com/users/sign_up
+
 Start of the example: 'displayio_flipclock_ntp_test2_PaulskPt.py'
 
 .. code-block:: python
