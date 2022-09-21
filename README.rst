@@ -242,7 +242,7 @@ in another project using an Adafruit MAGTAG device.
 In function 'refresh_from_NTP()' a datetime stamp will be requested from the Adafruit IO TIME Service.
 Two example responses from the Adafruit IO TIME Service are the following strings:
 
-1) '2022-09-20 22:38:00.324 263 2 +0000 UTC';
+1) '2022-09-20 22:38:00.324 263 2 +0000 GMT';
 2) '2022-09-21 12:38:05.725 264 3 +0100 WEST'.
 
 The received datetime string will be converted into a 'time.struct_time tuple',
