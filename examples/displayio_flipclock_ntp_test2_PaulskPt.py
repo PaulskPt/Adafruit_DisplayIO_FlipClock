@@ -6,9 +6,6 @@
     Advanced example that shows how you can use the
     FlipClock displayio object along with the adafruit_ntp library
     to show and update the current time with a FlipClock on a display.
-    
-    Example: displayio_flipclock_ntp_test2_PaulskPt.py
-    This test v2 uses the Adafruit IO TIME Service to synchronize the built-in RTC
 """
 
 import time
@@ -30,7 +27,7 @@ my_debug = False
 use_ntp = True
 use_local_time = None
 use_flipclock = True
-use_dynamic_fading = False
+use_dynamic_fading = True
 
 """ Other global variables """
 rtc = None
@@ -42,6 +39,7 @@ main_group = None
 clock = None
 display = board.DISPLAY
 start_t = time.monotonic()
+tm_offset = None
 tz_offset = 0
 hour_old = 0
 min_old = 0
@@ -50,7 +48,7 @@ def setup():
     global rtc, esp, tz_offset, use_local_time, aio_username, aio_key
 
     rtc = RTC()  # create the built-in rtc object
-    
+
     esp32_cs = DigitalInOut(board.ESP_CS)
     esp32_ready = DigitalInOut(board.ESP_BUSY)
     esp32_reset = DigitalInOut(board.ESP_RESET)
@@ -74,7 +72,7 @@ def setup():
     # Get our username, key and desired timezone
     aio_username = secrets["aio_username"]
     aio_key = secrets["aio_key"]
-    
+
     lt = secrets.get("LOCAL_TIME_FLAG", None)
     if lt is None:
         use_local_time = False
@@ -165,7 +163,7 @@ def make_clock():
             raise
 
 def refresh_from_NTP():
-    global default_dt
+    global default_dt, tm_offset
     TAG = "refresh_from_NTP(): "
     TIME_URL = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s" % (aio_username, aio_key)
     TIME_URL += "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
@@ -183,7 +181,7 @@ def refresh_from_NTP():
                 dt_lst ['2022-09-20', '22:53:17.323', '263', '2', '+0000', 'UTC']
                 date_lst ['2022', '09', '20']
                 time_lst ['22', '53', '17.323']
-                
+
                 Results REPL output:
                 ----------------------------------------
                 TIME received: 2022-09-20 23:11:48.347 263 2 +0000 UTC
@@ -195,7 +193,7 @@ def refresh_from_NTP():
                 r.close()
                 date_lst = dt_lst[0].split('-')
                 time_lst = dt_lst[1].split(':')
-                if my_debug:
+                if not my_debug:
                     print("dt_lst", dt_lst)
                     print("date_lst", date_lst)
                     print("time_lst", time_lst)
@@ -210,6 +208,9 @@ def refresh_from_NTP():
                 tm_sec = int(round(float(time_lst[2])))
                 tm_yday = int(dt_lst[2])
                 tm_wday = int(dt_lst[3])
+                tm_offset = int(dt_lst[4])
+                tm_ew = dt_lst[5]
+                                
                 dt_to_set = time.struct_time((tm_year, tm_month, tm_date, tm_hour, tm_min, tm_sec, tm_yday, tm_wday, -1))
                 if not my_debug:
                     print("Setting the built-in RTC to:", dt_to_set)
@@ -218,8 +219,13 @@ def refresh_from_NTP():
                 # Get the current time in seconds since Jan 1, 1970 and correct it for local timezone
                 # (defined in secrets.h)
                 # Convert the current time in seconds since Jan 1, 1970 to a struct_time
-                print(TAG+"tz_offset=", tz_offset)
-                default_dt = time.localtime(time.time()+ tz_offset) 
+                if my_debug:
+                    print(TAG+"tz_offset=", tz_offset)
+                if use_local_time and tz_offset != 0 and tm_offset != 0:
+                    default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
+                else:
+                    default_dt = time.localtime(time.time()+tz_offset)
+                    
                 if not my_debug:
                     print("Internal clock synchronized from NTP pool, now =", default_dt)
                     print("-" * 40)
@@ -234,6 +240,12 @@ def upd_tm():
     tm_min = 4
     tm_sec = 5
     default_dt = time.localtime(time.time()+tz_offset)
+    if use_local_time and tz_offset != 0 and tm_offset != 0:
+        default_dt = time.localtime(time.time()) # the received time from AIO TIME Service is already local time
+    else:
+        default_dt = time.localtime(time.time()+tz_offset)
+    if my_debug:
+        print("upd_tm(): default_dt=", default_dt)
     p_time = False
     hh = default_dt[tm_hour]
     mm = default_dt[tm_min]
