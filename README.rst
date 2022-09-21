@@ -240,13 +240,15 @@ This example uses the Adafruit IO TIME Service. To be able to use this example, 
 the keys 'aio_username' and 'aio_key' in the file 'secrets.py'. I used the Adafruit TIME Service successfully
 in another project using an Adafruit MAGTAG device.
 In function 'refresh_from_NTP()' a datetime stamp will be requested from the Adafruit IO TIME Service.
-Two example responses from the Adafruit IO TIME Service are the text string:
+Two example responses from the Adafruit IO TIME Service are the following strings:
+
 1) '2022-09-20 22:38:00.324 263 2 +0000 UTC';
 2) '2022-09-21 12:38:05.725 264 3 +0100 WEST'.
-These strings each will be converted to a time.struct_time tuple,
+
+The received datetime string will be converted into a 'time.struct_time tuple',
 used to set the built-in RTC, using the command: 'rtc.datetime = (<time.struct_time>)'. 
-Next the global variable 'default_dt' will be set, corrected for local timezone offset from UTC,
-depending the value of the global variable tz_offset.
+Next the global variable 'default_dt' will be set. Its value will be adjusted with the value of the 
+global variable 'tz_offset', which contains the local timezone offset from UTC.
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
