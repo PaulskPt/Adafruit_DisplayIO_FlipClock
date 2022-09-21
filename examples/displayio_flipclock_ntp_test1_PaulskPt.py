@@ -13,7 +13,6 @@ import gc
 import sys
 import board
 from rtc import RTC
-#import busio
 from digitalio import DigitalInOut
 from adafruit_esp32spi import adafruit_esp32spi
 from displayio import Group

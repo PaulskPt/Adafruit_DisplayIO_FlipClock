@@ -164,11 +164,9 @@ Usage Example #1
             time.sleep(0.75)
 
 
-
-
-Example #3
+Example #2
 ==========
-Filename: displayio_flipclock_ntp_test_PaulskPt.py.
+Filename: displayio_flipclock_ntp_test1_PaulskPt.py.
 
 This example sets the internal Realtime Clock of the microcontroller with the date and time received 
 from the function 'get_time' of class 'ESP_SPIcontrol' in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' 
@@ -184,15 +182,17 @@ Every ten minutes the internal RTC will be synchronized through a call to functi
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
 
-Usage Example #3
+Usage Example #2
 ================
-This example connects to WiFi to sync the internal RTC with the datetime stamp of a NTP server.
+
 The following variables have to be set in the file secrets.py:
 - WiFi ssid;
 - WiFi password;
-- timezone.
+- timezone;             See: http://worldtimeapi.org/timezones
+- tz_offset;
+- LOCAL_TIME_FLAG.
 
-Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
+Start of the example: 'displayio_flipclock_ntp_test1_PaulskPt.py'
 
 .. code-block:: python
 
@@ -200,24 +200,38 @@ Start of the example: 'displayio_flipclock_ntp_test_PaulskPt.py'
     import gc
     import sys
     import board
+    from rtc import RTC
     #import busio
     from digitalio import DigitalInOut
     from adafruit_esp32spi import adafruit_esp32spi
     from displayio import Group
     import adafruit_imageload
-    from adafruit_ntp import NTP
+    #from adafruit_ntp import NTP
     from adafruit_displayio_flipclock.flip_clock import FlipClock
-    
+
     """ Global flags """
     my_debug = False
     use_ntp = True
+    use_local_time = None
     use_flipclock = True
     use_dynamic_fading = True
+
+    """ Other global variables """
+    esp = None
+    rtc = None
+    default_dt = None
+    main_group = None
+    clock = None
+    display = board.DISPLAY
+    ntp = None
+    start_t = time.monotonic()
+    tz_offset = 0
+    hour_old = 0
     
     [...]
 
 
-Example #4
+Example #3
 ==========
 Filename: displayio_flipclock_ntp_test2_PaulskPt.py.
 
@@ -236,6 +250,57 @@ depending the value of the global variable tz_offset.
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
 
+
+Usage example #3
+================
+
+The following variables have to be set in the file secrets.py:
+- WiFi ssid;
+- WiFi password;
+- timezone;             See: http://worldtimeapi.org/timezones
+- tz_offset;
+- LOCAL_TIME_FLAG.
+
+Start of the example: 'displayio_flipclock_ntp_test2_PaulskPt.py'
+
+.. code-block:: python
+
+    import time
+    import gc
+    import sys
+    import board
+    from rtc import RTC
+    from digitalio import DigitalInOut
+    from adafruit_esp32spi import adafruit_esp32spi
+    import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+    from displayio import Group
+    import adafruit_imageload
+    from adafruit_displayio_flipclock.flip_clock import FlipClock
+    import adafruit_requests as requests
+
+    """ Global flags """
+    my_debug = False
+    use_ntp = True
+    use_local_time = None
+    use_flipclock = True
+    use_dynamic_fading = True
+
+    """ Other global variables """
+    rtc = None
+    esp = None
+    aio_username = None
+    aio_key = None
+    default_dt = None
+    main_group = None
+    clock = None
+    display = board.DISPLAY
+    start_t = time.monotonic()
+    tm_offset = None
+    tz_offset = 0
+    hour_old = 0
+    min_old = 0
+
+
 Notes
 =====
 PaulskPt's notes about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
@@ -243,7 +308,7 @@ to stop having MemoryErrors when running the examples #3 and #4 above on an Adaf
 Added 'import gc'. In function '__init__()' added in five places 'gc.collect()'.
 These additions had the intended result. The MemoryErrors stopped to occur.
 For the same reason a global flag 'use_dynamic_fading' was introduced in the file
-'displayio_flipclock_ntp_test_PaulskPt.py'.
+'displayio_flipclock_ntp_test1_PaulskPt.py'.
 
 In an attempt to use less memory in the PyPortal Titano,
 copies of some .bmp files were made with shortened filenames:
