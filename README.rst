@@ -216,7 +216,8 @@ copies of some .bmp files were made with shortened filenames:
 | bottom_animation_sheet_small_5frames.bmp | btm_anim_s_5f.bmp         |
 +------------------------------------------+---------------------------+
 
-Example #2 sets the internal Realtime Clock of the microcontroller with the date and time received 
+Example #2 (filename: displayio_flipclock_ntp_test_PaulskPt.py)
+This example sets the internal Realtime Clock of the microcontroller with the date and time received 
 from the function 'set_time()' of class NTP, in file: 'adafruit_ntp.py'. 
 The function 'set_time()' calls the function 'get_time' of class 'ESP_SPIcontrol'
 in file: '/lib/adafruit_esp32spi/adafruit_esp32spi.py' (or .mpy).
@@ -230,6 +231,22 @@ Example: timezone 'America/New York' has a timezone offset of UTC minus 4 hours 
 The value of the key 'tz_offset' in this case shoud be: '-14400'.
 If one wants the clock displays UTC time, then set the value of 'LOCAL_TIME_FLAG' in secrets.py to '0'
 
+Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
+The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.
+
+Example # 3 was created because of a discussion at: https://github.com/adafruit/Adafruit_CircuitPython_NTP/issues/16,
+from which I learned that the esp32spi.settime() creates a datetime stamp that is not alway accurate.
+
+Example #3 (filename: displayio_flipclock_ntp_test2_PaulskPt.py).
+This example uses the Adafruit IO TIME Service. To be able to use this example, the user has to set 
+the keys 'aio_username' and 'aio_key' in the file 'secrets.py'. I used the Adafruit TIME Service successfully
+in another project using an Adafruit MAGTAG device.
+In function 'refresh_from_NTP' a UTC datetime stamp will be requested from the Adafruit IO TIME Service.
+An example respons from the Adafruit IO TIME Service is a text string, e.g.:
+'2022-09-20 22:38:00.324 263 2 +0000 UTC'. This string will be converted to a time.struct_time tuple,
+that is used to set the built-in RTC, using the command: 'rtc.datetime = (time.struct_time)'. 
+Next the global variable 'default_dt' will be set, corrected for local timezone offset from UTC,
+depending the value of the global variable tz_offset.
 
 Every ten minutes the internal RTC will be synchronized through a call to function 'refresh_from_NTP()'.
 The time will be shown on the display ('hh:mm'). The displayed time will be refreshed every minute.

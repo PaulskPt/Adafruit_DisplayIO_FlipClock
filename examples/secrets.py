@@ -7,6 +7,8 @@
 secrets = {
     'ssid' : '<WiFi ssid>',
     'password' : '<WiFi password>',
+    'aio_username' : '<your aio username>',
+    'aio_key' : '<your aio key>',
     'LOCAL_TIME_FLAG' : "1",
     'timezone' : 'Europe/Lisbon', # http://worldtimeapi.org/timezones
     'tz_offset' : '3600',
