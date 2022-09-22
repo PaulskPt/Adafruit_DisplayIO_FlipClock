@@ -315,7 +315,7 @@ Start of the example: 'displayio_flipclock_ntp_test2_PaulskPt.py'
 Notes
 =====
 PaulskPt's notes about modifications in file 'flip_digit.py', class 'FlipDigit', which were necessary 
-to stop having MemoryErrors when running the examples #3 and #4 above on an Adafruit PyPortal Titano.
+to stop having MemoryErrors when running the examples #2 and #3 above on an Adafruit PyPortal Titano.
 Added 'import gc'. In function '__init__()' added in five places 'gc.collect()'.
 These additions had the intended result. The MemoryErrors stopped to occur.
 For the same reason a global flag 'use_dynamic_fading' was introduced in the file
