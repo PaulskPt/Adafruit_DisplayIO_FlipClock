@@ -301,7 +301,7 @@ def main():
         try:
             curr_t = time.monotonic()
             elapsed_t = curr_t - start_t
-            if elapsed_t >= 120:  # sync rtc with NTP datetime every 10 minutes
+            if elapsed_t >= 600:  # sync rtc with NTP datetime every 10 minutes
                 print("elapsed_t=", elapsed_t)
                 start_t = curr_t
                 refresh_from_NTP()
