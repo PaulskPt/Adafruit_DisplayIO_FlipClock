@@ -27,7 +27,7 @@ my_debug = False
 use_ntp = True
 use_local_time = None
 use_flipclock = True
-use_dynamic_fading = False
+use_dynamic_fading = True
 
 """ Other global variables """
 rtc = None
@@ -107,7 +107,7 @@ def setup():
             print("could not connect to AP, retrying: ", e)
             continue
     print("Connected to", str(esp.ssid, "utf-8"), "\tRSSI:", esp.rssi)
-
+    gc.collect()
     make_clock()
 
     refresh_from_NTP()
@@ -117,24 +117,17 @@ def make_clock():
 
     if use_flipclock:
         TRANSPARENT_INDEXES = range(11)
-        # load the static sprite sheet
         static_ss, static_palette = adafruit_imageload.load("static_s.bmp")
         static_palette.make_transparent(0)
 
         gc.collect()
-        # print(gc.mem_free())
-        # load the anim sprite sheets
         top_anim_ss, top_anim_palette = adafruit_imageload.load(
             "top_anim_s_5f.bmp"
-            #"top_animation_sheet_5frames.bmp" # error memory allocation failed, allocating 120000 bytes
         )
         gc.collect()
-        # print(gc.mem_free())
         btm_anim_ss, btm_anim_palette = adafruit_imageload.load(
             "btm_anim_s_5f.bmp"
-            #"bottom_animation_sheet_5frames.bmp"
         )
-        # set the transparent color indexes in respective palettes
         for _ in TRANSPARENT_INDEXES:
             top_anim_palette.make_transparent(_)
             btm_anim_palette.make_transparent(_)
@@ -179,47 +172,18 @@ def dt_adjust():
 def refresh_from_NTP():
     global default_dt, tm_offset
     TAG = "refresh_from_NTP(): "
-    # Note: created a 'split' into:
-    # a) TIME_URL string to send the request,
-    #    containing the real aio_username and the real aio_key;
-    # b) a string to be printed to REPL, containing '<aio_username>' and '<aio_key>' placeholders,
-    #    with the intention not to print to REPL the AIO credentials.
-    t0 = "https://io.adafruit.com/api/v2/"
-    t1 = "/integrations/time/strftime?x-aio-key="
-    ######
-    #   strftime specifiers used (see: https://cplusplus.com/reference/ctime/strftime/):
-    #   %25 = '%'
-    #   %Y  = Year, %25m = Month, %25d = Day of the month, zero-padded (01-31)
-    #   %H  = Hour in 24h format (00-23),
-    #   %3A = ':'
-    #   %M  = Minute (00-59)
-    #   %S  = Second (00-61)
-    #   .%L = ? (maybe a C/C++ type 'Long' indicator.
-    #         e.g.: if second is 23.047 the strftime spec would probably be: '23.047L')
-    #   %j  = Day of the year (001-366)
-    #   %u  = ISO 8601 weekday as number with Monday as 1 (1-7)
-    #   %z  = ISO 8601 offset from UTC in timezone (1 minute = 1, 1 hour = 100)
-    #         If timezone cannot be determined, no characters
-    #   %Z  = Timezone name or abbreviation *
-    #         If timezone cannot be determined, no characters
-    ######
-
-    t2 = "{}{}{}{}&tz={}".format(t0, aio_username, t1, aio_key, location)
-    t3 = "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
+    TIME_URL = "https://io.adafruit.com/api/v2/{:s}/integrations/".format(aio_username)
+    TIME_URL += "time/strftime?x-aio-key={:s}&tz={}".format(aio_key, location)
+    TIME_URL += "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
     # Create string (see a) above)
-    TIME_URL = t2 + t3
-    # Create string (see b) above)
-    t_pr1 = "{}{}{}{}&tz={}".format(t0, "<aio_username>", t1, "<aio_key>", location)
-    t_pr2 = t_pr1 + t3
-    # Cleanup
-    t0 = t1 = t2 = t3 = t_pr1 = None
+
     gc.collect()
 
     if use_ntp:
         if esp.is_connected:
             # esp._debug = True
             if my_debug:
-                t = TAG + "\nFetching time from Adafruit IO {}".format(t_pr2)
+                t = TAG + "\nFetching time from Adafruit IO {}".format(TIME_URL)
                 print(t)
             try:
                 print("request=", TIME_URL)
@@ -243,21 +207,7 @@ def refresh_from_NTP():
                     print(response.text)
                     print("Exiting function.")
                     return
-                """ Example responses:
-                1) TIME received: '2022-09-20 22:38:00.324 263 2 +0000 UTC';
-                2)                '2022-09-21 14:11:05.843 264 3 +0100 WEST'
-                Example:
-                dt_lst ['2022-09-20', '22:53:17.323', '263', '2', '+0000', 'UTC']
-                date_lst ['2022', '09', '20']
-                time_lst ['22', '53', '17.323']
 
-                Results REPL output:
-                ----------------------------------------
-                TIME received: 2022-09-20 23:11:48.347 263 2 +0000 UTC
-                Setting the built-in RTC to: struct_time(tm_year=2022, tm_mon=9, tm_mday=20, tm_hour=23, tm_min=11, tm_sec=48, tm_wday=263, tm_yday=2, tm_isdst=-1)
-                check: time from buil-in RTC= struct_time(tm_year=2022, tm_mon=9, tm_mday=20, tm_hour=23, tm_min=11, tm_sec=48, tm_wday=1, tm_yday=263, tm_isdst=-1)
-                ----------------------------------------
-                """
                 dt_lst = response.text.split(" ")
                 response.close()
                 date_lst = dt_lst[0].split('-')
@@ -270,24 +220,14 @@ def refresh_from_NTP():
                     print("-" * 55)
                     t = TAG + "\nTIME received: {}".format(response.text)
                     print(t)
-                tm_year = int(date_lst[0])
-                tm_month = int(date_lst[1])
-                tm_date = int(date_lst[2])
-                tm_hour = int(time_lst[0])
-                tm_min = int(time_lst[1])
-                tm_sec = int(round(float(time_lst[2])))
-                tm_yday = int(dt_lst[2])
-                tm_wday = int(dt_lst[3])
-                tm_offset = int(dt_lst[4])
-
-                dt_to_set = time.struct_time((tm_year, tm_month, tm_date, tm_hour, tm_min, tm_sec, tm_yday, tm_wday, -1))
+                dt_to_set = time.struct_time((int(date_lst[0]), int(date_lst[1]), int(date_lst[2]), int(time_lst[0]), 
+                int(time_lst[1]), int(round(float(time_lst[2]))), int(dt_lst[2]), int(dt_lst[3]), -1))
+                #dt_to_set = time.struct_time((tm_year, tm_month, tm_date, tm_hour, tm_min, tm_sec, tm_yday, tm_wday, -1))
                 if my_debug:
                     print("Setting the built-in RTC to:", dt_to_set)
                 rtc.datetime = dt_to_set
                 time.sleep(0.5)
-                # Get the current time in seconds since Jan 1, 1970 and correct it for local timezone
-                # (defined in secrets.h)
-                # Convert the current time in seconds since Jan 1, 1970 to a struct_time
+                
                 dt_adjust()
 
                 if my_debug:
